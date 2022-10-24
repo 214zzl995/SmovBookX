@@ -119,7 +119,7 @@ const testData = ref(
     "25": { id: 15, name: "15" } as Task,
     "26": { id: 15, name: "15" } as Task,
     "27": { id: 15, name: "15" } as Task,
-  }
+  } 
 );
 
 const searchContent = ref("");
@@ -163,7 +163,8 @@ watch(searchContent, (newValue, oldValue) => {
 }
 
 .TaskPoolAside {
-  height: 100%;
+  //高度需要计算 计算方法为 100vh - 导航高度 - 搜索栏高度
+  max-height: 100%;
   box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04),
     0px 8px 20px rgba(0, 0, 0, 0.08);
 }
@@ -286,7 +287,5 @@ watch(searchContent, (newValue, oldValue) => {
 
 .groupItem {
   width: 100%;
-  min-height: 200px;
-  max-height: max-content;
 }
 </style>
