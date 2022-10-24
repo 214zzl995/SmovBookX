@@ -264,17 +264,8 @@ export default defineComponent({
     };
 
     const test18 = () => {
-      webview = new WebviewWindow("TaskPool", {
-        url: "/TaskPool",
-        title: "任务",
-        width: 600,
-        height: 500,
-        decorations: false,
-        transparent: true,
-        resizable: false,
-      });
-      webview.show();
-      webview.unminimize();
+
+      request("go_task_pool")
     };
 
     const addTaskEvent = () => {

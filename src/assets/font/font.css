@@ -1,0 +1,34 @@
+@font-face {
+  font-family: "GenShinGothic-P";
+  src: url('./GenShinGothic-P/GenShinGothic-P-Normal.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "GenShinGothic-P";
+  src: url('./GenShinGothic-P/GenShinGothic-P-Medium.ttf');
+  font-weight: medium;
+  font-style: medium;
+}
+
+@font-face {
+  font-family: "GenShinGothic-P";
+  src: url('./GenShinGothic-P/GenShinGothic-P-Regular.ttf');
+  font-weight: light;
+  font-style: light;
+}
+
+@font-face {
+  font-family: "GenShinGothic-P";
+  src: url('./GenShinGothic-P/GenShinGothic-P-Bold.ttf');
+  font-weight: bold;
+  font-style: bold;
+}
+
+@font-face {
+  font-family: "GenShinGothic-P";
+  src: url('./GenShinGothic-P/GenShinGothic-P-Heavy.ttf');
+  font-weight: heavy;
+  font-style: heavy;
+}

@@ -56,7 +56,7 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-evenly;
 }
 
 .loadingView {

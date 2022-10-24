@@ -14,12 +14,6 @@ use thiserror::Error;
 use tokio::runtime::{Builder, Runtime};
 use uuid::Uuid;
 
-// 将线程池 注入tauri 使用commond 操作 不知道行不行
-// 注入参考 https://github.com/tauri-apps/tauri/discussions/4514
-// hashMap 参考 https://www.jianshu.com/p/4b078acba28d
-// 按照当前写法 https://docs.rs/tokio/latest/tokio/runtime/struct.Builder.html 也能实现
-// 考虑用lazystatic存 线程数等
-// https://stackoverflow.com/questions/26199926/how-to-terminate-or-suspend-a-rust-thread-from-another-thread 线程停止等资料
 pub struct TaskPool {
   pub pool: Runtime,
   pub tasks: HashMap<String, TaskEvent>,

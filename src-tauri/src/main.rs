@@ -82,6 +82,7 @@ async fn main() {
       cmd::tauri_cmd::set_style,
       cmd::tauri_cmd::get_local_ip,
       cmd::tauri_cmd::go_seek,
+      cmd::tauri_cmd::go_task_pool,
       cmd::tauri_cmd::go_detail,
       cmd::tauri_cmd::change_seek_suspended,
       cmd::tauri_cmd::change_seek_shadow,
