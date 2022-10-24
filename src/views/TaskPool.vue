@@ -46,7 +46,7 @@
 
 
             <div class="groupItem animate__slideInDown" v-show="groupShow.crawler">
-              <TaskAbbreviation v-for="(item, index) in testData" key="index" />
+              <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item"  />
             </div>
 
           </div>
@@ -64,7 +64,7 @@
 
 
             <div class="groupItem" v-show="groupShow.convert">
-              <TaskAbbreviation v-for="(item, index) in testData" key="index" />
+              <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
             </div>
           </div>
         </div>
@@ -90,23 +90,37 @@ const groupShow = ref({
   convert: false
 })
 
-const testData = ref([
-  { "1": { id: 1, name: "1" } as Task },
-  { "2": { id: 2, name: "2" } as Task },
-  { "3": { id: 3, name: "3" } as Task },
-  { "4": { id: 4, name: "4" } as Task },
-  { "5": { id: 5, name: "5" } as Task },
-  { "6": { id: 6, name: "6" } as Task },
-  { "7": { id: 7, name: "7" } as Task },
-  { "8": { id: 8, name: "8" } as Task },
-  { "9": { id: 9, name: "9" } as Task },
-  { "10": { id: 10, name: "10" } as Task },
-  { "11": { id: 11, name: "11" } as Task },
-  { "12": { id: 12, name: "12" } as Task },
-  { "13": { id: 13, name: "13" } as Task },
-  { "14": { id: 14, name: "14" } as Task },
-  { "15": { id: 15, name: "15" } as Task }
-]);
+const testData = ref(
+  {
+    "1": { id: 1, name: "1" } as Task,
+    "2": { id: 2, name: "2" } as Task,
+    "3": { id: 3, name: "3" } as Task,
+    "4": { id: 4, name: "4" } as Task,
+    "5": { id: 5, name: "5" } as Task,
+    "6": { id: 6, name: "6" } as Task,
+    "7": { id: 7, name: "7" } as Task,
+    "8": { id: 8, name: "8" } as Task,
+    "9": { id: 9, name: "9" } as Task,
+    "10": { id: 10, name: "10" } as Task,
+    "11": { id: 11, name: "11" } as Task,
+    "12": { id: 12, name: "12" } as Task,
+    "13": { id: 13, name: "13" } as Task,
+    "14": { id: 14, name: "14" } as Task,
+    "15": { id: 15, name: "15" } as Task,
+    "16": { id: 15, name: "15" } as Task,
+    "17": { id: 15, name: "15" } as Task,
+    "18": { id: 15, name: "15" } as Task,
+    "19": { id: 15, name: "15" } as Task,
+    "20": { id: 15, name: "15" } as Task,
+    "21": { id: 15, name: "15" } as Task,
+    "22": { id: 15, name: "15" } as Task,
+    "23": { id: 15, name: "15" } as Task,
+    "24": { id: 15, name: "15" } as Task,
+    "25": { id: 15, name: "15" } as Task,
+    "26": { id: 15, name: "15" } as Task,
+    "27": { id: 15, name: "15" } as Task,
+  }
+);
 
 const searchContent = ref("");
 
