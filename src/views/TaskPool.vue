@@ -45,10 +45,11 @@
             </div>
 
 
-            <div class="groupItem animate__slideInDown" v-show="groupShow.crawler">
-              <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
-            </div>
-
+            <el-collapse-transition>
+              <div class="groupItem animate__slideInDown" v-show="groupShow.crawler">
+                <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
+              </div>
+            </el-collapse-transition>
           </div>
           <div class="taskGroup operate">
             <div class="operate-item" :class="groupShow.convert ? 'operate-item-open' : ''" @click="groupShowFnConvert">
@@ -57,13 +58,17 @@
               <span class="operateTitle">
                 转码
               </span>
+              <!-- 添加选择动画 -->
               <div class="dropDown" :class="groupShow.convert ? 'dropDownShow animate__flip animate__faster' : ''">
               </div>
             </div>
 
-            <div class="groupItem" v-show="groupShow.convert">
-              <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
-            </div>
+            <!-- 添加 收缩动画 -->
+            <el-collapse-transition>
+              <div class="groupItem" v-show="groupShow.convert">
+                <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
+              </div>
+            </el-collapse-transition>
           </div>
         </div>
 
@@ -190,7 +195,7 @@ watch(searchContent, (newValue, oldValue) => {
 
 .operate-item-open {
   // box-shadow: 0px 17px 10px 0px rgb(0 0 0 / 4%);
-  border-bottom: rgba(0, 0, 0, 0.13) solid 1px;
+  border-bottom: rgba(0, 0, 0, 0.13) solid 0px;
 }
 
 .operate-item {
