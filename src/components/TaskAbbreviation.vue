@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="task">
         <span>{{ task.name }}</span>
     </div>
 </template>
@@ -21,9 +21,18 @@ const props = defineProps({
 })
 
 
-
 </script>
 
 <style lang='less' scoped>
-
+.task{
+    cursor: pointer;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    display: flex;
+    padding-left: 0.6rem
+}
+.task:hover {
+    background: rgba(236, 236, 236, 0.719);
+    border-radius: 5px;
+}
 </style>

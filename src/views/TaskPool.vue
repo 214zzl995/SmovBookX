@@ -20,7 +20,7 @@
         <!-- 当前需要对不同的情况有默认的处理 比如打开时 树是什么状态的  -->
         <!-- 按钮的添加 需要全部缩回去的按钮 全部打开的按钮 搜索按钮 -->
         <!-- 动画 他们值得动画 虽然动画我还不知道怎么做 但是应该要有 -->
-        <div class="operate search">
+        <div class="operate searchDiv">
           <div class="operate-item" @mousemove="operateHover.search = true" @mouseleave="operateHover.search = false"
             @click="searchShowFn">
             <search theme="multi-color" size="18" :fill="['#909399', '#2F88FF', '#FFF', '#43CCF8']" :strokeWidth="3"
@@ -34,34 +34,32 @@
 
         <div class="taskTree">
           <div class="taskGroup operate">
-            <div class="operate-item" @click="groupShow.crawler = !groupShow.crawler">
+            <div class="operate-item" :class="groupShow.crawler ? 'operate-item-open' : ''" @click="groupShowFnCrawler">
               <instruction theme="multi-color" size="18" :fill="['#333', '#2F88FF', '#FFF', '#43CCF8']" :strokeWidth="3"
                 strokeLinecap="square" />
               <span class="operateTitle">
                 爬虫
               </span>
-              <div class="dropDown">
+              <div class="dropDown" :class="groupShow.crawler ? 'dropDownShow animate__flip animate__faster' : ''">
               </div>
             </div>
 
 
             <div class="groupItem animate__slideInDown" v-show="groupShow.crawler">
-              <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item"  />
+              <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
             </div>
 
           </div>
           <div class="taskGroup operate">
-            <div class="operate-item" @click="groupShow.convert = !groupShow.convert">
+            <div class="operate-item" :class="groupShow.convert ? 'operate-item-open' : ''" @click="groupShowFnConvert">
               <instruction theme="multi-color" size="18" :fill="['#333', '#2F88FF', '#FFF', '#43CCF8']" :strokeWidth="3"
                 strokeLinecap="square" />
               <span class="operateTitle">
                 转码
               </span>
-              <div class="dropDown">
-
+              <div class="dropDown" :class="groupShow.convert ? 'dropDownShow animate__flip animate__faster' : ''">
               </div>
             </div>
-
 
             <div class="groupItem" v-show="groupShow.convert">
               <TaskAbbreviation v-for="(item, key) in testData" key="key" :uuid="key" :task="item" />
@@ -119,7 +117,7 @@ const testData = ref(
     "25": { id: 15, name: "15" } as Task,
     "26": { id: 15, name: "15" } as Task,
     "27": { id: 15, name: "15" } as Task,
-  } 
+  }
 );
 
 const searchContent = ref("");
@@ -139,8 +137,19 @@ const searchShowFn = () => {
   }
 }
 
-//搜索内容防抖 在修改搜索内容时 如果前面还在执行就先清除后继续
 let SearchTimeOut: any;
+
+const groupShowFnCrawler = () => {
+  groupShow.value.convert = false;
+  groupShow.value.crawler = !groupShow.value.crawler;
+
+}
+
+const groupShowFnConvert = () => {
+  groupShow.value.crawler = false;
+  groupShow.value.convert = !groupShow.value.convert;
+
+}
 
 watch(searchContent, (newValue, oldValue) => {
   clearTimeout(SearchTimeOut);
@@ -163,8 +172,9 @@ watch(searchContent, (newValue, oldValue) => {
 }
 
 .TaskPoolAside {
-  //高度需要计算 计算方法为 100vh - 导航高度 - 搜索栏高度
-  max-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04),
     0px 8px 20px rgba(0, 0, 0, 0.08);
 }
@@ -178,11 +188,16 @@ watch(searchContent, (newValue, oldValue) => {
   flex-direction: column;
 }
 
+.operate-item-open {
+  // box-shadow: 0px 17px 10px 0px rgb(0 0 0 / 4%);
+  border-bottom: rgba(0, 0, 0, 0.13) solid 1px;
+}
+
 .operate-item {
   width: 100%;
   display: flex;
   padding: 0.3rem;
-  padding-left: 0.6rem;
+  // padding-left: 0.6rem;
   color: #333;
   align-items: center;
   font-size: 0.9rem;
@@ -239,7 +254,7 @@ watch(searchContent, (newValue, oldValue) => {
   color: #909399;
 }
 
-.search {
+.searchDiv {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
@@ -269,6 +284,14 @@ watch(searchContent, (newValue, oldValue) => {
   margin-left: auto;
 }
 
+.dropDownShow {
+  transform: rotate(180deg);
+}
+
+.taskTree {
+  flex: 1;
+}
+
 .taskGroup:hover {
   .dropDown {
     border-left: 0.4rem solid transparent;
@@ -287,5 +310,8 @@ watch(searchContent, (newValue, oldValue) => {
 
 .groupItem {
   width: 100%;
+  max-height: 70vh;
+  overflow-y: scroll;
+  cursor: auto;
 }
 </style>
