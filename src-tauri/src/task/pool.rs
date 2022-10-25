@@ -23,7 +23,7 @@ pub struct TaskPool {
   pub app_handle: AppHandle,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone)]
+#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize)]
 pub struct TaskEvent {
   pub event_type: TaskType,
   pub ask: TaskAsk,
@@ -48,7 +48,7 @@ pub struct TaskMessage<T> {
   data: T,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone)]
+#[derive(Eq, Hash, PartialEq, Clone,Deserialize, Serialize)]
 pub enum TaskType {
   Crawler,
   Convert,
@@ -321,7 +321,28 @@ pub fn pause_pool(task_pool: tauri::State<Arc<Mutex<TaskPool>>>) {
   task_pool.lock().pause();
 }
 
-//获取当前的所有线程包括未完成的
+#[command]
+pub fn get_task_pool(
+  task_pool: tauri::State<Arc<Mutex<TaskPool>>>,
+) -> Response<HashMap<TaskType, HashMap<String, TaskEvent>>> {
+  //获取当前所有数据
+  let tasks = task_pool.lock().tasks.clone();
 
+  let mut crawler = HashMap::new();
+  let mut convert = HashMap::new();
+
+  for (key, value) in tasks.into_iter() {
+    if value.event_type.eq(&TaskType::Convert) {
+      convert.insert(key, value);
+    } else {
+      crawler.insert(key, value);
+    }
+  }
+
+  let mut task_map = HashMap::new();
+  task_map.insert(TaskType::Convert, convert);
+  task_map.insert(TaskType::Crawler, crawler);
+  Response::ok(task_map, "成功")
+}
 
 //重构seek界面

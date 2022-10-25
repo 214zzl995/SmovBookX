@@ -90,7 +90,8 @@ async fn main() {
       crawler::crawler::smov_crawler,
       task::pool::add_task_convert,
       task::pool::add_task_crawler,
-      task::pool::pause_pool
+      task::pool::pause_pool,
+      task::pool::get_task_pool
     ])
     .build(tauri::generate_context!())
     .expect("error while running tauri application"); //这里要做错误处理 当出现错误时 用windows自带的弹窗 弹出错误信息

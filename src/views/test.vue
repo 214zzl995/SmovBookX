@@ -27,8 +27,8 @@
 
     <el-button type="danger" @click="test15">测试打开新窗口</el-button>
 
-    <el-button type="danger" @click="test17">测试TASK</el-button>
-    <el-button type="danger" @click="test17_2">测试TASK_2</el-button>
+    <el-button type="danger" @click="test17">添加TASK</el-button>
+    <el-button type="danger" @click="test17_2">获取当前所有线程</el-button>
 
     <el-button type="danger" @click="test18">打开TaskPool窗口</el-button>
 
@@ -250,7 +250,7 @@ export default defineComponent({
     };
 
     const test17 = () => {
-      request("add_task_crawler", { taskAsk: { id: 224, name: "test" } }).then(
+      request("add_task_crawler", { taskAsk: { id: 1, name: "test" } }).then(
         (res) => {
           console.log(res);
         }
@@ -258,9 +258,9 @@ export default defineComponent({
     };
 
     const test17_2 = () => {
-      emit("TASK://get_task_len", { id: 224, name: "test" }).then((res) => {
-        console.log(res);
-      });
+      request("get_task_pool").then(res=>{
+        console.log(res)
+      })
     };
 
     const test18 = () => {
