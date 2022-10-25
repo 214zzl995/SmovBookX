@@ -23,6 +23,7 @@ pub struct TaskPool {
   pub app_handle: AppHandle,
 }
 
+#[derive(Eq, Hash, PartialEq, Clone)]
 pub struct NextTask {
   task_event: TaskEvent,
   uuid: String,
@@ -39,6 +40,7 @@ pub struct Task<'a> {
   task_event: &'a TaskEvent,
   app_handle: &'a AppHandle,
   uuid: String,
+  smov_pool: SmovPool,
 }
 
 #[derive(Eq, Hash, PartialEq, Deserialize, Serialize, Clone)]
@@ -110,6 +112,9 @@ pub fn pool_new(app_handle: AppHandle) -> Result<SmovPool, PoolErr> {
   }
 }
 
+//关于这个异步 类型依赖循环问题的可能解决方案
+//1.将循环放到当前的pool_add_task 将每种类型的任务 生成一个异步 通过while 循环 我觉的可以实现
+//2.解决类型依赖循环问题
 fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) -> String {
   let mut task_pool_lock = task_pool.lock();
   let uuid = Uuid::new_v4().to_string();
@@ -125,11 +130,13 @@ fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) ->
   if task_size < &task_pool_lock.thread_num && task_pool_lock.can_run() {
     let now_size = task_pool_lock.exec_num.get(&task_type).unwrap().clone();
 
-    task_pool_lock.exec_num.insert(task_type, now_size + 1);
+    task_pool_lock
+      .exec_num
+      .insert(task_type.clone(), now_size + 1);
 
     let task_pool_copy = task_pool.clone();
 
-    let task = task_run(task_pool_copy, uuid.clone());
+    let task = task_type_run(task_pool_copy, task_type.clone());
 
     task_pool_lock.pool.spawn(task);
   }
@@ -137,7 +144,39 @@ fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) ->
   uuid
 }
 
-async fn task_run(smov_pool: SmovPool, uuid: String) {
+async fn task_type_run(smov_pool: SmovPool, task_type: TaskType) {
+  println!(
+    "{}",
+ smov_pool
+    .clone()
+    .lock()
+    .get_next_task(&task_type)
+    .clone()
+    .eq(&None)
+  );
+  while smov_pool
+    .clone()
+    .lock()
+    .get_next_task(&task_type)
+    .clone()
+    .eq(&None)
+    && smov_pool.clone().lock().can_run().clone()
+  {
+    let uuid = smov_pool
+      .lock()
+      .get_next_task(&task_type)
+      .clone()
+      .unwrap()
+      .uuid;
+    task_run(smov_pool.clone(), uuid);
+  }
+  if smov_pool.lock().get_exec_all_num().clone() == 0 {
+    //当线程已经结束 没有下一个线程 且运行的线程数为0 更新池的状态 为等待
+    smov_pool.lock().status = PoolStatus::Idle;
+  }
+}
+
+fn task_run(smov_pool: SmovPool, uuid: String) {
   let pool = smov_pool.lock();
 
   let task_event = pool.tasks.get(&uuid).unwrap().clone();
@@ -148,6 +187,7 @@ async fn task_run(smov_pool: SmovPool, uuid: String) {
     task_event: &task_event,
     app_handle,
     uuid,
+    smov_pool: smov_pool.clone(),
   };
 
   MutexGuard::unlock_fair(pool);
@@ -160,23 +200,6 @@ async fn task_run(smov_pool: SmovPool, uuid: String) {
   pool
     .exec_num
     .insert(task_event.event_type.clone(), task_size - 1);
-
-  //判断是否有下一位
-  if let (Some(next_task), true) = (pool.get_next_task(&task_event.event_type), pool.can_run()) {
-    //继续执行下一条数据
-    let lock_pool = smov_pool.clone();
-    let task_run_fn = task_run(lock_pool, next_task.uuid);
-
-    if false {
-      pool.pool.spawn(task_run_fn);
-    }
-  } else {
-    //判断是否还有正在运行的线程
-    if pool.get_exec_all_num() == 0 {
-      //当线程已经结束 没有下一个线程 且运行的线程数为0 更新池的状态 为等待
-      pool.status = PoolStatus::Idle;
-    }
-  }
 }
 
 impl TaskPool {
@@ -236,6 +259,7 @@ impl TaskPool {
 
   pub fn get_next_task(self: &Self, task_type: &TaskType) -> Option<NextTask> {
     for (key, value) in self.tasks.iter() {
+      
       if value.status.eq(&TaskStatus::Wait) && value.event_type.eq(task_type) {
         return Some(NextTask {
           task_event: value.clone(),
@@ -275,6 +299,15 @@ impl<T> TaskMessage<T> {
 
 impl Task<'_> {
   pub fn emit_status(self: &Self, task_status: TaskStatus) {
+    let mut pool = self.smov_pool.lock();
+    let mut task = pool.tasks.get(&self.uuid).unwrap().clone();
+
+    task.status = task_status.clone();
+
+    pool.tasks.insert(self.uuid.clone(), task);
+
+    MutexGuard::unlock_fair(pool);
+
     self
       .app_handle
       .emit_all(

@@ -250,11 +250,33 @@ export default defineComponent({
     };
 
     const test17 = () => {
-      request("add_task_crawler", { taskAsk: { id: 1, name: "test" } }).then(
+
+      request("add_task_crawler", { taskAsk: { id: 1, name: "IPVR - 075" } }).then(
         (res) => {
           console.log(res);
         }
       );
+      request("add_task_crawler", { taskAsk: { id: 2, name: "PPPD - 927" } }).then(
+        (res) => {
+          console.log(res);
+        }
+      );
+      request("add_task_crawler", { taskAsk: { id: 3, name: "IPX - 177" } }).then(
+        (res) => {
+          console.log(res);
+        }
+      );
+      request("add_task_crawler", { taskAsk: { id: 4, name: "SSNI - 780" } }).then(
+        (res) => {
+          console.log(res);
+        }
+      );
+      request("add_task_crawler", { taskAsk: { id:5, name: "CAWD - 243" } }).then(
+        (res) => {
+          console.log(res);
+        }
+      );
+
     };
 
     const test17_2 = () => {
