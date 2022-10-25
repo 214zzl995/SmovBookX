@@ -23,6 +23,11 @@ pub struct TaskPool {
   pub app_handle: AppHandle,
 }
 
+pub struct NextTask {
+  task_event: TaskEvent,
+  uuid: String,
+}
+
 #[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize)]
 pub struct TaskEvent {
   pub event_type: TaskType,
@@ -48,7 +53,7 @@ pub struct TaskMessage<T> {
   data: T,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone,Deserialize, Serialize)]
+#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize)]
 pub enum TaskType {
   Crawler,
   Convert,
@@ -151,8 +156,25 @@ async fn task_run(smov_pool: SmovPool, uuid: String) {
 
   let mut pool = smov_pool.lock();
 
-  let task_size = pool.exec_num.get(&TaskType::Convert).unwrap().clone();
-  pool.exec_num.insert(TaskType::Convert, task_size - 1);
+  let task_size = pool.exec_num.get(&task_event.event_type).unwrap().clone();
+  pool
+    .exec_num
+    .insert(task_event.event_type.clone(), task_size - 1);
+
+  //判断是否有下一位
+  if let (Some(next_task), true) = (pool.get_next_task(&task_event.event_type), pool.can_run()) {
+    //继续执行下一条数据
+    let lock_pool = smov_pool.clone();
+    let task_run_fn = task_run(lock_pool, next_task.uuid);
+
+    pool.pool.spawn(task_run_fn);
+  } else {
+    //判断是否还有正在运行的线程
+    if pool.get_exec_all_num() == 0 {
+      //当线程已经结束 没有下一个线程 且运行的线程数为0 更新池的状态 为等待
+      pool.status = PoolStatus::Idle;
+    }
+  }
 }
 
 impl TaskPool {
@@ -176,7 +198,7 @@ impl TaskPool {
     }
   }
 
-  //每一次运行都需要重新创建一个新的run 已弃用
+  //该方法已弃用
   pub async fn run(self: &mut Self, uuid: String) {
     let mut task_evenet = self.tasks.get(&uuid).unwrap().clone();
 
@@ -188,7 +210,7 @@ impl TaskPool {
     self.tasks.insert(uuid, task_evenet);
 
     //判断是否有下一个task
-    if let (Some(_task), true) = (self.get_next_task(), self.can_run()) {
+    if let (Some(_task), true) = (self.get_next_task(&TaskType::Convert), self.can_run()) {
       //给pool 塞入下一个
     } else {
       self.exec_num.insert(
@@ -210,10 +232,13 @@ impl TaskPool {
     exec_num
   }
 
-  pub fn get_next_task(self: &Self) -> Option<TaskEvent> {
-    for (_, value) in self.tasks.iter() {
-      if value.status == TaskStatus::Wait {
-        return Some(value.clone());
+  pub fn get_next_task(self: &Self, task_type: &TaskType) -> Option<NextTask> {
+    for (key, value) in self.tasks.iter() {
+      if value.status.eq(&TaskStatus::Wait) && value.event_type.eq(task_type) {
+        return Some(NextTask {
+          task_event: value.clone(),
+          uuid: key.clone(),
+        });
       }
     }
     None
@@ -310,6 +335,7 @@ pub fn add_task_crawler(
   task_ask: TaskAsk,
 ) -> Response<Option<String>> {
   let task_pool: SmovPool = task_pool.inner().clone();
+  //需要发送消息给taskpool界面 让界面能新增一个任务 所以应该要返回一个taskEvent
   Response::ok(
     Some(pool_add_task(task_pool, task_ask, TaskType::Crawler)),
     "成功",
