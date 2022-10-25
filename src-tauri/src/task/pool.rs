@@ -167,7 +167,9 @@ async fn task_run(smov_pool: SmovPool, uuid: String) {
     let lock_pool = smov_pool.clone();
     let task_run_fn = task_run(lock_pool, next_task.uuid);
 
-    pool.pool.spawn(task_run_fn);
+    if false {
+      pool.pool.spawn(task_run_fn);
+    }
   } else {
     //判断是否还有正在运行的线程
     if pool.get_exec_all_num() == 0 {
