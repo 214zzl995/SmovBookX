@@ -32,7 +32,8 @@ const props = defineProps({
     display: flex;
     padding-left: 0.6rem;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 0.4rem;
+    font-weight: 500;
 }
 
 .task:hover {

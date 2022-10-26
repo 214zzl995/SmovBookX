@@ -1,6 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use parking_lot::{Mutex, MutexGuard};
+use tracing::info;
 
 use crate::{
   crawler::crawler::smov_crawler_program_pool,
@@ -52,6 +53,7 @@ pub struct TaskAsk {
 #[derive(Eq, Hash, PartialEq, Deserialize, Serialize, Clone, Debug)]
 pub struct TaskMessage<T> {
   uuid: String,
+  msg: String,
   data: T,
 }
 
@@ -112,9 +114,6 @@ pub fn pool_new(app_handle: AppHandle) -> Result<SmovPool, PoolErr> {
   }
 }
 
-//关于这个异步 类型依赖循环问题的可能解决方案
-//1.将循环放到当前的pool_add_task 将每种类型的任务 生成一个异步 通过while 循环 我觉的可以实现
-//2.解决类型依赖循环问题
 fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) -> String {
   let mut task_pool_lock = task_pool.lock();
   let uuid = Uuid::new_v4().to_string();
@@ -145,34 +144,34 @@ fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) ->
 }
 
 async fn task_type_run(smov_pool: SmovPool, task_type: TaskType) {
-  println!(
-    "{}",
- smov_pool
-    .clone()
-    .lock()
-    .get_next_task(&task_type)
-    .clone()
-    .eq(&None)
-  );
-  while smov_pool
-    .clone()
-    .lock()
-    .get_next_task(&task_type)
-    .clone()
-    .eq(&None)
-    && smov_pool.clone().lock().can_run().clone()
-  {
-    let uuid = smov_pool
-      .lock()
-      .get_next_task(&task_type)
-      .clone()
-      .unwrap()
-      .uuid;
+  //当当前有下一个线程且 可以运行时 while 这里的 next 应该就由while 取 不然可能会出现被别人抢了的情况 一般不会 所以先放着不管了 不然又得大改
+  while let (Some(next_task), true) = (
+    {
+      let pool = smov_pool.lock();
+      let next_task = pool.get_next_task(&task_type).clone();
+      MutexGuard::unlock_fair(pool);
+      next_task
+    },
+    {
+      let pool = smov_pool.lock();
+      let can_run = pool.can_run().clone();
+      MutexGuard::unlock_fair(pool);
+      can_run
+    },
+  ) {
+    let uuid = next_task.uuid;
+    info!("正在执行程序{}", uuid);
     task_run(smov_pool.clone(), uuid);
   }
-  if smov_pool.lock().get_exec_all_num().clone() == 0 {
-    //当线程已经结束 没有下一个线程 且运行的线程数为0 更新池的状态 为等待
-    smov_pool.lock().status = PoolStatus::Idle;
+  let mut pool = smov_pool.lock();
+
+  let task_size = pool.exec_num.get(&task_type.clone()).unwrap().clone();
+
+  pool.exec_num.insert(task_type.clone(), task_size - 1);
+
+  if pool.get_exec_all_num().clone() == 0 && pool.status.eq(&PoolStatus::Running) {
+    //当线程已经结束 没有下一个线程 且当前状态为正在运行时 且运行的线程数为0 更新池的状态 为等待
+    pool.status = PoolStatus::Idle;
   }
 }
 
@@ -193,13 +192,6 @@ fn task_run(smov_pool: SmovPool, uuid: String) {
   MutexGuard::unlock_fair(pool);
 
   task.join();
-
-  let mut pool = smov_pool.lock();
-
-  let task_size = pool.exec_num.get(&task_event.event_type).unwrap().clone();
-  pool
-    .exec_num
-    .insert(task_event.event_type.clone(), task_size - 1);
 }
 
 impl TaskPool {
@@ -257,9 +249,9 @@ impl TaskPool {
     exec_num
   }
 
+  //获取下一位时就需要 将这个任务占用 建议直接改状态
   pub fn get_next_task(self: &Self, task_type: &TaskType) -> Option<NextTask> {
     for (key, value) in self.tasks.iter() {
-      
       if value.status.eq(&TaskStatus::Wait) && value.event_type.eq(task_type) {
         return Some(NextTask {
           task_event: value.clone(),
@@ -292,13 +284,17 @@ impl TaskEvent {
 impl TaskEvent {}
 
 impl<T> TaskMessage<T> {
-  fn new(uuid: String, data: T) -> Self {
-    Self { uuid, data }
+  pub fn new(uuid: String, data: T, msg: &str) -> TaskMessage<T> {
+    TaskMessage {
+      uuid,
+      data,
+      msg: msg.to_string(),
+    }
   }
 }
 
 impl Task<'_> {
-  pub fn emit_status(self: &Self, task_status: TaskStatus) {
+  pub fn emit_status(self: &Self, task_status: TaskStatus, msg: &str) {
     let mut pool = self.smov_pool.lock();
     let mut task = pool.tasks.get(&self.uuid).unwrap().clone();
 
@@ -312,7 +308,7 @@ impl Task<'_> {
       .app_handle
       .emit_all(
         "TASKPOOL://status_change",
-        TaskMessage::new(self.uuid.clone(), task_status),
+        TaskMessage::new(self.uuid.clone(), task_status, msg),
       )
       .unwrap();
   }
@@ -323,7 +319,7 @@ impl Task<'_> {
       .app_handle
       .emit_all(
         "TASKPOOL://schedule_change",
-        TaskMessage::new(self.uuid.clone(), schedule),
+        TaskMessage::new(self.uuid.clone(), schedule, ""),
       )
       .unwrap();
   }
@@ -335,19 +331,24 @@ impl Task<'_> {
       let smov = match Smov::get_smov_by_id(self.task_event.ask.id) {
         Ok(smov) => Some(smov),
         Err(_) => {
-          self.emit_status(TaskStatus::Fail);
+          self.emit_status(TaskStatus::Fail, "数据库中未找到资源");
           return;
         }
       }
       .unwrap();
-      smov.to_hls(&self).unwrap();
+
+      if let Err(err) = smov.to_hls(&self) {
+        self.emit_status(TaskStatus::Fail, &err.to_string());
+      }
     } else if event_type.eq(&TaskType::Crawler) {
       let id = self.task_event.ask.id;
       let retrieving_smov = RetrievingSmovPool::get_retriecing_smov_by_id(id.clone()).unwrap();
 
       let format = SmovName::format_smov_name(&retrieving_smov.seek_name);
 
-      smov_crawler_program_pool(format, id, &self).unwrap();
+      if let Err(err) = smov_crawler_program_pool(format, id, &self) {
+        self.emit_status(TaskStatus::Fail, &err.to_string());
+      }
     }
   }
 }

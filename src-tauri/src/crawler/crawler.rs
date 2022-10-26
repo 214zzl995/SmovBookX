@@ -216,7 +216,7 @@ pub fn smov_crawler_program_pool(
   id: i64,
   task: &crate::task::pool::Task<'_>,
 ) -> Result<()> {
-  task.emit_status(TaskStatus::Running);
+  task.emit_status(TaskStatus::Running,format!("开始爬取 爬取名称：{}",format).as_str());
 
   let url = format!("{}/search?q={}&f=all", *MAIN_URL, format);
 
@@ -390,6 +390,8 @@ pub fn smov_crawler_program_pool(
   }
 
   smov_seek.insert_by_path_name().unwrap();
+
+  task.emit_status(TaskStatus::Success,"爬取结束,爬取状态：成功");
 
   Ok(())
 }

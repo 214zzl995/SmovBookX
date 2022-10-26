@@ -12,7 +12,10 @@ use crate::task::pool::TaskStatus;
 
 impl Smov {
   pub fn to_hls(self: &Self, task: &crate::task::pool::Task<'_>) -> Result<(), Error> {
-    task.emit_status(TaskStatus::Running);
+    task.emit_status(
+      TaskStatus::Running,
+      format!("开始执行转码，转码名称：{}", self.name).as_str(),
+    );
     let path = crate::app::APP.lock().clone().conf.tidy_folder;
     let media_folder = path.join(self.realname.clone());
 
@@ -67,8 +70,8 @@ impl Smov {
         }
         MessageView::Error(err) => {
           pipeline.set_state(gstreamer::State::Null).unwrap();
-          eprintln!(
-            "Got error from {}: {} ({})",
+          let err_msg = format!(
+            "转码错误 {}: {} ({})",
             msg
               .src()
               .map(|s| String::from(s.path_string()))
@@ -76,7 +79,7 @@ impl Smov {
             err.error(),
             err.debug().unwrap_or_else(|| "".into()),
           );
-          break;
+          return Err(anyhow!(err_msg));
         }
         MessageView::Element(ele) => {
           let structure = ele.structure().unwrap();
@@ -88,6 +91,8 @@ impl Smov {
     }
 
     pipeline.set_state(gstreamer::State::Null).unwrap();
+
+    task.emit_status(TaskStatus::Success, "转码结束,转码状态：成功");
 
     Ok(())
   }

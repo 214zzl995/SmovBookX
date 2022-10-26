@@ -15,10 +15,6 @@
     </el-header>
     <el-container>
       <el-aside class="TaskPoolAside" width="25%">
-        <!-- 当前的几种查找的方案都不合适 暂定方案为添加查询按钮 点击查询按钮 或键盘快捷键 c+f 时 悬浮一个和edge 差不多的 搜索框 这个搜索框的位置需要斟酌一下 如何符合一个人的操作 向下选择和 向上选择是需要的 需要定位到位置并滚动过去  -->
-        <!-- 还有就是 对于下拉的设计 应该会做二级菜单 二级菜单的颜色选择是灰色  缩进与下面的选择器相同 缩进需要斟酌一下 -->
-        <!-- 当前需要对不同的情况有默认的处理 比如打开时 树是什么状态的  -->
-        <!-- 按钮的添加 需要全部缩回去的按钮 全部打开的按钮 搜索按钮 -->
         <div class="operate searchDiv">
           <div class="operate-item" @mousemove="operateHover.search = true" @mouseleave="operateHover.search = false"
             @click="searchShowFn">
@@ -74,9 +70,11 @@
             </Transition>
           </div>
         </div>
-
       </el-aside>
-      <el-main class="TaskPoolMain"> Main </el-main>
+      <el-main class="TaskPoolMain">
+        <!-- 使用部分加载实现？ -->
+
+      </el-main>
     </el-container>
   </el-container>
 </template>
@@ -98,8 +96,8 @@ const groupShow = ref({
 })
 
 let data = ref({
-  Convert:{},
-  Crawler:{}
+  Convert: {},
+  Crawler: {}
 });
 
 const showData = computed({
@@ -216,17 +214,17 @@ watch(searchContent, (newValue, oldValue) => {
 });
 
 const getTaskPool = () => {
-  request("get_task_pool").then((res:any) =>{
-   if (res.code == 200){
+  request("get_task_pool").then((res: any) => {
+    if (res.code == 200) {
       data.value = res.data
       console.log(data.value)
-   }
+    }
   })
 }
 
 //先试试能不能正常获取数据
 onMounted(() => {
-   getTaskPool();
+  getTaskPool();
 })
 
 </script>
@@ -445,7 +443,7 @@ onMounted(() => {
   }
 
   100% {
-    max-height:70vh;
+    max-height: 70vh;
   }
 }
 
