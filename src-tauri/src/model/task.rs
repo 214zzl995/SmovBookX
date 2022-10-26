@@ -35,7 +35,7 @@ impl TasksModel {
     Ok(Self {
       id: 0,
       name: task_event.ask.name.clone(),
-      uuid:uuid.clone(),
+      uuid: uuid.clone(),
       smov_id: task_event.ask.id,
       task_type: task_event.event_type.clone(),
       task_status: task_event.status.clone(),
@@ -44,6 +44,7 @@ impl TasksModel {
 
   pub fn to_task_event(self: &Self) -> Result<TaskEvent> {
     Ok(TaskEvent {
+      id: self.id,
       event_type: self.task_type.clone(),
       ask: TaskAsk {
         id: self.smov_id,
@@ -52,7 +53,7 @@ impl TasksModel {
       status: self.task_status.clone(),
     })
   }
-  pub fn insert(self: &Self) -> Result<()> {
+  pub fn insert(self: &Self) -> Result<i64> {
     exec(|conn| {
       conn
         .execute(
@@ -67,7 +68,15 @@ impl TasksModel {
         )
         .expect("插入tasks表出现错误");
 
-      Ok(())
+      let task_id: i64 = conn
+        .query_row_and_then(
+          "SELECT id from tasks where uuid = ?1",
+          params![self.uuid],
+          |row| row.get(0),
+        )
+        .expect("查询出现错误");
+
+      Ok(task_id)
     })
   }
   pub fn get_all_vec() -> Result<Vec<TaskEvent>> {
@@ -95,12 +104,12 @@ impl TasksModel {
   }
 }
 
-pub fn get_all_task() -> Result<HashMap<String, TaskEvent>> {
-  let mut task_event: HashMap<String, TaskEvent> = HashMap::new();
+pub fn get_all_task_old_and_bad() -> Result<HashMap<String, TaskEvent>> {
+  let mut task_events: HashMap<String, TaskEvent> = HashMap::new();
   exec(|conn| {
     let mut stmt = conn.prepare("select id,name,uuid,smov_id,type,status from tasks")?;
     let _ = stmt.query_map([], |row| {
-      let task_model = TasksModel {
+      let task_event = TasksModel {
         id: row.get(0)?,
         name: row.get(1)?,
         uuid: row.get(2)?,
@@ -110,9 +119,35 @@ pub fn get_all_task() -> Result<HashMap<String, TaskEvent>> {
       }
       .to_task_event()
       .unwrap();
-      task_event.insert(row.get(2)?, task_model);
+
+      task_events.insert(row.get(2)?, task_event);
       Ok(())
     })?;
-    Ok(task_event)
+    Ok(task_events)
+  })
+}
+
+pub fn get_all_task() -> Result<HashMap<String, TaskEvent>> {
+  let mut task_events: HashMap<String, TaskEvent> = HashMap::new();
+  exec(|conn| {
+    let mut stmt = conn.prepare("select id,name,uuid,smov_id,type,status from tasks")?;
+    let models = stmt.query_map([], |row| {
+      Ok(TasksModel {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        uuid: row.get(2)?,
+        smov_id: row.get(3)?,
+        task_type: TaskType::to_enum(row.get(4)?),
+        task_status: TaskStatus::to_enum(row.get(5)?),
+      })
+    })?;
+
+    for model in models{
+      let model = model?;
+      let uuid = model.uuid.clone();
+      task_events.insert(uuid, model.to_task_event().unwrap());
+    }
+    
+    Ok(task_events)
   })
 }

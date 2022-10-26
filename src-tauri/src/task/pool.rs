@@ -5,7 +5,10 @@ use tracing::info;
 
 use crate::{
   crawler::crawler::smov_crawler_program_pool,
-  model::{smov::{RetrievingSmovPool, Smov}, task::TasksModel},
+  model::{
+    smov::{RetrievingSmovPool, Smov},
+    task::TasksModel,
+  },
   response::response::Response,
   util::smov_format::SmovName,
 };
@@ -30,8 +33,9 @@ pub struct NextTask {
   uuid: String,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize)]
+#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize,Debug)]
 pub struct TaskEvent {
+  pub id: i64,
   pub event_type: TaskType,
   pub ask: TaskAsk,
   pub status: TaskStatus,
@@ -44,7 +48,7 @@ pub struct Task<'a> {
   smov_pool: SmovPool,
 }
 
-#[derive(Eq, Hash, PartialEq, Deserialize, Serialize, Clone)]
+#[derive(Eq, Hash, PartialEq, Deserialize, Serialize, Clone,Debug)]
 pub struct TaskAsk {
   pub id: i64,
   pub name: String,
@@ -57,7 +61,7 @@ pub struct TaskMessage<T> {
   data: T,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize)]
+#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize,Debug)]
 pub enum TaskType {
   Crawler,
   Convert,
@@ -134,7 +138,7 @@ impl TaskType {
 
 pub fn pool_new(app_handle: AppHandle) -> Result<SmovPool, PoolErr> {
   let thread_num = crate::app::APP.lock().conf.thread.clone();
-  let tasks = crate:: model::task::get_all_task().unwrap();
+  let tasks = crate::model::task::get_all_task().unwrap();
   match Builder::new_multi_thread().build() {
     Ok(pool) => Ok(Arc::new(Mutex::new(TaskPool {
       pool,
@@ -157,14 +161,20 @@ fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) ->
   let mut task_pool_lock = task_pool.lock();
   let uuid = Uuid::new_v4().to_string();
 
-  let task = TaskEvent::new(task_type.clone(), task_ask).unwrap();
+  let mut task = TaskEvent::new(task_type.clone(), task_ask).unwrap();
+
+  let id = TasksModel::from_task_event(&task, &uuid)
+    .unwrap()
+    .insert()
+    .unwrap();
+
+  task.set_id(id);
 
   task_pool_lock.tasks.insert(uuid.clone(), task.clone());
 
   let task_size = task_pool_lock.exec_num.get(&task_type).unwrap();
 
   //将任务存入数据库
-  TasksModel::from_task_event(&task, &uuid).unwrap();
 
   if task_size < &task_pool_lock.thread_num && task_pool_lock.can_run() {
     let now_size = task_pool_lock.exec_num.get(&task_type).unwrap().clone();
@@ -235,6 +245,7 @@ fn task_run(smov_pool: SmovPool, uuid: String) {
 }
 
 impl TaskPool {
+  //方法已弃用
   pub fn new(app_handle: AppHandle) -> Result<Self, PoolErr> {
     let thread_num = crate::app::APP.lock().conf.thread.clone();
     match Builder::new_multi_thread().build() {
@@ -314,10 +325,15 @@ impl TaskPool {
 impl TaskEvent {
   fn new(task_type: TaskType, task_ask: TaskAsk) -> Result<Self, TaskErr> {
     Ok(TaskEvent {
+      id: 0,
       event_type: task_type,
       ask: task_ask,
       status: TaskStatus::Wait,
     })
+  }
+
+  fn set_id(self: &mut Self, id: i64) {
+    self.id = id;
   }
 }
 

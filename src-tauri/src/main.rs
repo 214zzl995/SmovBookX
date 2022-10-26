@@ -26,9 +26,7 @@ async fn main() {
   let app = tauri::Builder::default()
     .setup(|app| {
       app::listen_single_app(app.handle());
-      app.manage(std::sync::Arc::new(parking_lot::Mutex::new(
-        task::pool::TaskPool::new(app.app_handle()).unwrap(),
-      )));
+      app.manage(task::pool::pool_new(app.app_handle()).unwrap());
       if cfg!(target_os = "windows") {
         app::webview2_is_installed(app);
       }
