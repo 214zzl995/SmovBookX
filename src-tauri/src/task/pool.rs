@@ -355,7 +355,7 @@ impl Task<'_> {
 
 #[command]
 pub fn add_task_convert(
-  task_pool: tauri::State<Arc<Mutex<TaskPool>>>,
+  task_pool: tauri::State<SmovPool>,
   task_ask: TaskAsk,
 ) -> Response<Option<String>> {
   let task_pool: SmovPool = task_pool.inner().clone();
@@ -367,7 +367,7 @@ pub fn add_task_convert(
 
 #[command]
 pub fn add_task_crawler(
-  task_pool: tauri::State<Arc<Mutex<TaskPool>>>,
+  task_pool: tauri::State<SmovPool>,
   task_ask: TaskAsk,
 ) -> Response<Option<String>> {
   let task_pool: SmovPool = task_pool.inner().clone();
@@ -379,13 +379,13 @@ pub fn add_task_crawler(
 }
 
 #[command]
-pub fn pause_pool(task_pool: tauri::State<Arc<Mutex<TaskPool>>>) {
+pub fn pause_pool(task_pool: tauri::State<SmovPool>) {
   task_pool.lock().pause();
 }
 
 #[command]
 pub fn get_task_pool(
-  task_pool: tauri::State<Arc<Mutex<TaskPool>>>,
+  task_pool: tauri::State<SmovPool>,
 ) -> Response<HashMap<TaskType, HashMap<String, TaskEvent>>> {
   //获取当前所有数据
   let tasks = task_pool.lock().tasks.clone();
