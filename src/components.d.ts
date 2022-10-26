@@ -13,7 +13,6 @@ declare module 'vue' {
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElContainer: typeof import('element-plus/es')['ElContainer']
     ElDialog: typeof import('element-plus/es')['ElDialog']
-    ElDivider: typeof import('element-plus/es')['ElDivider']
     ElEmpty: typeof import('element-plus/es')['ElEmpty']
     ElFooter: typeof import('element-plus/es')['ElFooter']
     ElHeader: typeof import('element-plus/es')['ElHeader']
@@ -35,6 +34,7 @@ declare module 'vue' {
     SmovIco: typeof import('./components/SmovIco.vue')['default']
     SmovItem: typeof import('./components/SmovItem.vue')['default']
     TaskAbbreviation: typeof import('./components/TaskAbbreviation.vue')['default']
+    TaskDetail: typeof import('./components/TaskDetail.vue')['default']
     TaskStatusSup: typeof import('./components/TaskStatusSup.vue')['default']
   }
 }

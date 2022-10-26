@@ -1140,13 +1140,27 @@ impl SMOVBOOK {
 
       conn
         .execute(
-          "create Table if not exists seek_queue
-          (
-              id      integer primary key autoincrement,
-              smov_id integer,
-              seekName TEXT,
-              status  tinyint(1) default 0
-          )",
+          "create table if not exists tasks
+            (
+                id      integer primary key autoincrement,
+                name    TEXT,
+                uuid    TEXT,
+                smov_id integer,
+                type    integer,
+                status  integer default 0
+            )",
+          [],
+        )
+        .unwrap();
+
+      conn
+        .execute(
+          "create table if not exists tasks_msg
+            (
+                id      integer primary key autoincrement,
+                tasks_id integer,
+                msg     TEXT
+            )",
           [],
         )
         .unwrap();

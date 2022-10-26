@@ -5,7 +5,7 @@ use tracing::info;
 
 use crate::{
   crawler::crawler::smov_crawler_program_pool,
-  model::smov::{RetrievingSmovPool, Smov},
+  model::{smov::{RetrievingSmovPool, Smov}, task::TasksModel},
   response::response::Response,
   util::smov_format::SmovName,
 };
@@ -94,12 +94,51 @@ pub enum TaskErr {
 
 pub type SmovPool = Arc<Mutex<TaskPool>>;
 
+impl TaskStatus {
+  pub fn to_i64(self: Self) -> i64 {
+    match self {
+      TaskStatus::Wait => 0,
+      TaskStatus::Running => 1,
+      TaskStatus::Fail => 2,
+      TaskStatus::Success => 3,
+    }
+  }
+
+  pub fn to_enum(flag: i64) -> Self {
+    match flag {
+      0 => TaskStatus::Wait,
+      1 => TaskStatus::Running,
+      2 => TaskStatus::Fail,
+      3 => TaskStatus::Success,
+      _ => TaskStatus::Wait,
+    }
+  }
+}
+
+impl TaskType {
+  pub fn to_i64(self: Self) -> i64 {
+    match self {
+      TaskType::Crawler => 0,
+      TaskType::Convert => 1,
+    }
+  }
+
+  pub fn to_enum(flag: i64) -> Self {
+    match flag {
+      0 => TaskType::Crawler,
+      1 => TaskType::Convert,
+      _ => TaskType::Crawler,
+    }
+  }
+}
+
 pub fn pool_new(app_handle: AppHandle) -> Result<SmovPool, PoolErr> {
   let thread_num = crate::app::APP.lock().conf.thread.clone();
+  let tasks = crate:: model::task::get_all_task().unwrap();
   match Builder::new_multi_thread().build() {
     Ok(pool) => Ok(Arc::new(Mutex::new(TaskPool {
       pool,
-      tasks: HashMap::new(),
+      tasks,
       exec_num: {
         let mut map = HashMap::new();
         map.insert(TaskType::Convert, 0);
@@ -120,11 +159,12 @@ fn pool_add_task(task_pool: SmovPool, task_ask: TaskAsk, task_type: TaskType) ->
 
   let task = TaskEvent::new(task_type.clone(), task_ask).unwrap();
 
-  task_pool_lock.tasks.insert(uuid.clone(), task);
+  task_pool_lock.tasks.insert(uuid.clone(), task.clone());
 
   let task_size = task_pool_lock.exec_num.get(&task_type).unwrap();
 
   //将任务存入数据库
+  TasksModel::from_task_event(&task, &uuid).unwrap();
 
   if task_size < &task_pool_lock.thread_num && task_pool_lock.can_run() {
     let now_size = task_pool_lock.exec_num.get(&task_type).unwrap().clone();
