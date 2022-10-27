@@ -33,7 +33,7 @@ pub struct NextTask {
   uuid: String,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize,Debug)]
+#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize, Debug)]
 pub struct TaskEvent {
   pub id: i64,
   pub event_type: TaskType,
@@ -48,7 +48,7 @@ pub struct Task<'a> {
   smov_pool: SmovPool,
 }
 
-#[derive(Eq, Hash, PartialEq, Deserialize, Serialize, Clone,Debug)]
+#[derive(Eq, Hash, PartialEq, Deserialize, Serialize, Clone, Debug)]
 pub struct TaskAsk {
   pub id: i64,
   pub name: String,
@@ -61,7 +61,7 @@ pub struct TaskMessage<T> {
   data: T,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize,Debug)]
+#[derive(Eq, Hash, PartialEq, Clone, Deserialize, Serialize, Debug)]
 pub enum TaskType {
   Crawler,
   Convert,
@@ -245,52 +245,6 @@ fn task_run(smov_pool: SmovPool, uuid: String) {
 }
 
 impl TaskPool {
-  //方法已弃用
-  pub fn new(app_handle: AppHandle) -> Result<Self, PoolErr> {
-    let thread_num = crate::app::APP.lock().conf.thread.clone();
-    match Builder::new_multi_thread().build() {
-      Ok(pool) => Ok(TaskPool {
-        pool,
-        tasks: HashMap::new(),
-        exec_num: {
-          let mut map = HashMap::new();
-          map.insert(TaskType::Convert, 0);
-          map.insert(TaskType::Crawler, 0);
-          map
-        },
-        thread_num,
-        status: PoolStatus::Idle,
-        app_handle,
-      }),
-      Err(err) => Err(PoolErr::PoolCreateError(err.to_string())),
-    }
-  }
-
-  //该方法已弃用
-  pub async fn run(self: &mut Self, uuid: String) {
-    let mut task_evenet = self.tasks.get(&uuid).unwrap().clone();
-
-    //执行程序
-
-    //更新task的状态
-    //task_evenet.status = task_status;
-    task_evenet.status = TaskStatus::Success;
-    self.tasks.insert(uuid, task_evenet);
-
-    //判断是否有下一个task
-    if let (Some(_task), true) = (self.get_next_task(&TaskType::Convert), self.can_run()) {
-      //给pool 塞入下一个
-    } else {
-      self.exec_num.insert(
-        TaskType::Convert,
-        self.exec_num.get(&TaskType::Convert).unwrap() - 1,
-      );
-
-      //判断是否还有正在运行的线程
-      if self.get_exec_all_num() == 0 {}
-    }
-  }
-
   pub fn get_exec_all_num(self: &Self) -> i64 {
     let mut exec_num = 0;
 
