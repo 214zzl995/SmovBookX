@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use parking_lot::{Mutex, MutexGuard};
 use tracing::info;
+use window_shadows::set_shadow;
 
 use crate::{
   crawler::crawler::smov_crawler_program_pool,
@@ -13,7 +14,7 @@ use crate::{
   util::smov_format::SmovName,
 };
 use serde::{Deserialize, Serialize};
-use tauri::{command, AppHandle, Manager};
+use tauri::{command, AppHandle, Manager, Window, WindowUrl};
 use thiserror::Error;
 use tokio::runtime::{Builder, Runtime};
 use uuid::Uuid;
@@ -134,6 +135,22 @@ impl TaskType {
       _ => TaskType::Crawler,
     }
   }
+}
+
+pub fn init_poll_window(app_handle: AppHandle) {
+  let window = Window::builder(&app_handle, "TaskPool", WindowUrl::App("TaskPool".into()))
+    .title("任务列表")
+    .center()
+    .inner_size(700.0, 500.0)
+    .decorations(false)
+    .skip_taskbar(false)
+    .resizable(true)
+    .transparent(true)
+    .visible(false)
+    .build()
+    .unwrap();
+
+  set_shadow(&window, true).unwrap();
 }
 
 pub fn pool_new(app_handle: AppHandle) -> Result<SmovPool, PoolErr> {

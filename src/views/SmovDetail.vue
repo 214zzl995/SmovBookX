@@ -238,7 +238,6 @@ export default defineComponent({
       img.value.temp.addEventListener("mousewheel", SizeEvent, {
         passive: false,
       });
-      current.setResizable(false);
 
       mainImg.onmousedown = function (ev) {
         var oEvent = ev;
@@ -353,7 +352,7 @@ export default defineComponent({
   overflow: hidden;
   border-radius: 8px;
   box-shadow: 10px 10px 5px #888888;
-  background-color: #88888821;
+  background-color: #f9f9f9;
 }
 
 .detail {

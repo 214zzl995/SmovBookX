@@ -27,6 +27,7 @@ async fn main() {
     .setup(|app| {
       app::listen_single_app(app.handle());
       app.manage(task::pool::pool_new(app.app_handle()).unwrap());
+      task::pool::init_poll_window(app.app_handle());
       if cfg!(target_os = "windows") {
         app::webview2_is_installed(app);
       }
@@ -93,8 +94,6 @@ async fn main() {
     ])
     .build(tauri::generate_context!())
     .expect("error while running tauri application"); //这里要做错误处理 当出现错误时 用windows自带的弹窗 弹出错误信息
-
-  //pool.lock().unwrap().join_app_handle(app.handle());
 
   app.run(app::handle_app_event);
 }

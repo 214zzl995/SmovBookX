@@ -1,5 +1,5 @@
 <template>
-  <div class="smovItem" @click="openDetail()">
+  <div class="smovItem" @click="openDetail">
     <img
       :src="data.thumbs_img == '' ? nonePic : convertFileSrc(data.thumbs_img)"
       class="smovImg"

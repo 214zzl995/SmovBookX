@@ -110,7 +110,6 @@ pub async fn go_task_pool(window: Window) {
     }
     None => {
       let window = Window::builder(&window, "TaskPool", WindowUrl::App("TaskPool".into()))
-        .focus()
         .title("任务列表")
         .center()
         .inner_size(700.0, 600.0)
@@ -253,23 +252,28 @@ pub async fn change_seek_shadow(window: Window) {
 }
 
 #[command]
-pub async fn go_detail(label: String, url: String, window: Window) {
+pub async fn go_detail(label: String, url: String, window: Window, app: tauri::AppHandle) {
   match window.get_window(&label) {
     Some(win) => set_focus(label, win),
     None => {
-      let window = Window::builder(&window, String::from(&label), WindowUrl::App(url.into()))
+      let window = Window::builder(&app, String::from(&label), WindowUrl::App(url.into()))
         .focus()
         .title(String::from(&label))
         .center()
-        .min_inner_size(800.0, 600.0)
         .decorations(false)
         .transparent(true)
+        .visible(false)
+        .min_inner_size(800.0, 600.0)
         .build()
         .unwrap();
 
+      //反正有问题 模仿main的处理方式 解决一下
+      window.show().unwrap();
+
       set_shadow(&window, true).unwrap();
 
-      set_effect(Effect::Acrylic, &window);
+      //现在半透明有bug 先不用了
+      //set_effect(Effect::Acrylic, &window);
     }
   };
 }
