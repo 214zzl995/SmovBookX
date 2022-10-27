@@ -120,7 +120,7 @@ pub fn get_all_task_old_and_bad() -> Result<HashMap<String, TaskEvent>> {
       .to_task_event()
       .unwrap();
 
-      task_events.insert(row.get(2)?, task_event);
+      task_events.insert(row.get(2)?, task_event); 
       Ok(())
     })?;
     Ok(task_events)
