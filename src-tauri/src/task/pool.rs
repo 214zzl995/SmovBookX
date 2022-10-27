@@ -331,6 +331,8 @@ impl Task<'_> {
 
     MutexGuard::unlock_fair(pool);
 
+    //修改数据库 运行的状态 ，将状态与消息传入数据库
+
     self
       .app_handle
       .emit_all(
@@ -340,13 +342,15 @@ impl Task<'_> {
       .unwrap();
   }
 
-  //进度还需要 msg消息
-  pub fn emit_schedule(self: &Self, schedule: i64) {
+  pub fn emit_schedule(self: &Self, schedule: i64, msg: &str) {
+
+    //将进度消息传入msg 每一个消息都应对应一个进度或状态
+
     self
       .app_handle
       .emit_all(
         "TASKPOOL://schedule_change",
-        TaskMessage::new(self.uuid.clone(), schedule, ""),
+        TaskMessage::new(self.uuid.clone(), schedule, msg),
       )
       .unwrap();
   }

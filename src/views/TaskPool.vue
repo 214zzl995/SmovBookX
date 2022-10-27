@@ -73,7 +73,9 @@
       </el-aside>
       <el-main class="TaskPoolMain">
         <!-- 使用部分加载实现？ -->
-        
+        <div class="TaskPoolDeatils">
+            <TaskDetail v-for="(item, key) in showData.Convert" key="key" :uuid="key" :task="item" />
+        </div>
       </el-main>
     </el-container>
   </el-container>

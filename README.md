@@ -184,5 +184,6 @@ https://stackoverflow.com/questions/35568871/is-it-possible-to-implement-methods
 - [ ] 检索系统 检索的性能需求较高 
 - [ ] 任务删除
 - [ ] 悬浮球 悬浮球将会作为一个单独的界面显示
+- [ ] 当关机时 需要将所有正在运行的任务修改为失败
 
 
