@@ -169,7 +169,7 @@ https://blog.csdn.net/m0_68007835/article/details/123956420
 
 https://stackoverflow.com/questions/35568871/is-it-possible-to-implement-methods-on-type-aliases 
 
-# seek 重构
+# taskpool重构
 
 - [x] taskpool 多类型树
 - [x] 后台线程池实现
@@ -185,5 +185,11 @@ https://stackoverflow.com/questions/35568871/is-it-possible-to-implement-methods
 - [ ] 任务删除
 - [ ] 悬浮球 悬浮球将会作为一个单独的界面显示
 - [ ] 当关机时 需要将所有正在运行的任务修改为失败
+
+
+# taskpool界面
+# 问题
+1. 如何处理 不同类型在界面上的显示呢 是全部放到一个界面上还是 
+2. 假设分两个界面显示 如何在两个界面滚动 
 
 
