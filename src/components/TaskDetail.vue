@@ -11,7 +11,7 @@ import { PropType } from 'vue';
 
 const props = defineProps({
     uuid: {
-        type: String,
+        type: [String, Number],
         default: ""
     },
     task: {

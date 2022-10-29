@@ -65,7 +65,7 @@
             </div>
             <Transition name="task-group">
               <div class="groupItem" v-show="groupShow.convert">
-                <TaskAbbreviation v-for="(item, key) in showData.Convert" key="key" :uuid="key" :task="item" />
+                <TaskAbbreviation v-for="(item, key) in showData.Convert" :key="key" :uuid="key" :task="item" />
               </div>
             </Transition>
           </div>
@@ -74,7 +74,7 @@
       <el-main class="TaskPoolMain">
         <!-- 使用部分加载实现？ -->
         <div class="TaskPoolDeatils">
-            <TaskDetail v-for="(item, key) in showData.Convert" key="key" :uuid="key" :task="item" />
+          <TaskDetail v-for="(item, key) in showData.Convert" :key="key" :uuid="key" :task="item" />
         </div>
       </el-main>
     </el-container>
@@ -111,7 +111,7 @@ const showData = computed({
     // v是计算属性下传递的实参
     // 如果要想修改计算属性的值，默认调用set方法
   }
-});
+}) as any;
 
 const testDataCrawler = ref(
   {

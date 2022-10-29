@@ -1,6 +1,7 @@
 <template>
     <div class="task">
         <TaskStatusSup :TaskStatus="task.status" />
+        <span v-show="false">{{ uuid }}</span>
         <span>{{ task.ask.name }}</span>
     </div>
 </template>
@@ -12,7 +13,7 @@ import { PropType } from 'vue';
 
 const props = defineProps({
     uuid: {
-        type: String,
+        type: [String, Number],
         default: ""
     },
     task: {
