@@ -75,7 +75,7 @@
         <!-- 尝试制作两个tab？当我不通过导航时 如何切换界面？ 还是说就没有普通切换界面的方法
            只通过导航来 或者 干脆我右边只显示一个界面？dom太多会不会导致加载太卡了 -->
         <div class="TaskPoolDeatils">
-          <TaskDetail v-for="(item, key) in showData.Convert" :key="key" :uuid="key" :task="item" />
+          <TaskDetail v-for="(item, key) in showData.Crawler" :key="key" :uuid="key" :task="item" />
         </div>
       </el-main>
     </el-container>
