@@ -1,5 +1,3 @@
-import { ElLoading } from "element-plus";
-
 <template>
   <div class="app index">
     <el-container>

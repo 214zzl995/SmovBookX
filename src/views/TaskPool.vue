@@ -300,6 +300,7 @@ onMounted(() => {
 
 .searchInputDiv {
   border: rgba(0, 0, 0, .08) solid 1px;
+  background: #f0f2f5;
   position: fixed;
   top: 2.5rem;
   right: 2rem;
