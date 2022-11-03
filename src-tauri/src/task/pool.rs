@@ -141,7 +141,7 @@ pub fn init_poll_window(app_handle: AppHandle) {
   let window = Window::builder(&app_handle, "TaskPool", WindowUrl::App("TaskPool".into()))
     .title("任务列表")
     .center()
-    .inner_size(700.0, 500.0)
+    .min_inner_size(700.0, 500.0)
     .decorations(false)
     .skip_taskbar(false)
     .resizable(true)
