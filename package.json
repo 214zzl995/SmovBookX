@@ -23,7 +23,8 @@
     "vue-clipboard3": "^2.0.0",
     "vue-router": "^4.0.0-0",
     "vxe-table": "^4.2.0",
-    "xe-utils": "3"
+    "xe-utils": "^3.5.7"
+
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^3.0.1",

@@ -45,7 +45,8 @@
 
             <Transition name="task-group">
               <div class="groupItem animate__slideInDown" v-show="groupShow.crawler">
-                <TaskAbbreviation v-for="(item, key) in showData.Crawler" key="key" :uuid="key" :task="item" />
+                <TaskAbbreviation v-for="(item, key) in showData.Crawler" key="key" :uuid="key" :task="item"
+                  @click="goToTask(TaskType.Convert, key.toString())" />
               </div>
             </Transition>
           </div>
@@ -63,9 +64,10 @@
                 </div>
               </div>
             </div>
-            <Transition name="task-group">
+            <Transition name="task-group" mode="out-in">
               <div class="groupItem" v-show="groupShow.convert">
-                <TaskAbbreviation v-for="(item, key) in showData.Convert" :key="key" :uuid="key" :task="item" />
+                <TaskAbbreviation v-for="(item, key) in showData.Convert" :key="key" :uuid="key" :task="item"
+                  @click="goToTask(TaskType.Convert, key.toString())" />
               </div>
             </Transition>
           </div>
@@ -74,9 +76,16 @@
       <el-main class="TaskPoolMain">
         <!-- 尝试制作两个tab？当我不通过导航时 如何切换界面？ 还是说就没有普通切换界面的方法
            只通过导航来 或者 干脆我右边只显示一个界面？dom太多会不会导致加载太卡了 -->
-        <div class="TaskPoolDeatils">
-          <TaskDetail v-for="(item, key) in showData.Crawler" :key="key" :uuid="key" :task="item" />
-        </div>
+        <Transition name="slide-up" mode="out-in">
+          <div class="TaskPoolDeatils" v-if="nowTab == TaskType.Crawler">
+            <TaskDetail v-for="(item, key) in showData.Crawler" :key="key" :uuid="key" :task="item" />
+            <div class="LeaveBlank"></div>
+          </div>
+          <div class="TaskPoolDeatils" v-else-if="nowTab == TaskType.Convert">
+            <TaskDetail v-for="(item, key) in showData.Convert" :key="key" :uuid="key" :task="item" />
+            <div class="LeaveBlank"></div>
+          </div>
+        </Transition>
       </el-main>
     </el-container>
   </el-container>
@@ -86,6 +95,7 @@
 import { Search, Close, Instruction } from "@icon-park/vue-next";
 import { TaskEvent, TaskType, TaskAsk, TaskStatus } from '@/ts/Task'
 import { request } from "@/util/invoke";
+import XEUtils from "xe-utils";
 
 const operateHover = ref({
   search: false,
@@ -94,7 +104,7 @@ const operateHover = ref({
 });
 
 const groupShow = ref({
-  crawler: false,
+  crawler: true,
   convert: false
 })
 
@@ -103,10 +113,22 @@ let data = ref({
   Crawler: {}
 });
 
+const nowTab = ref(TaskType.Crawler);
+
+//这个过滤要不要给后台 这里会不会太慢了 但是可能会造成页面多次渲染
 const showData = computed({
   get() {
-    // 如果读取计算属性的值，默认调用get方法
-    return data.value
+    return XEUtils.objectMap(data.value, item => {
+      if (searchContent.value == "" || searchContent.value == undefined || searchContent.value == null) {
+        return item
+      } else {
+        // @ts-ignore
+        return XEUtils.pick(item, (val: TaskEvent) => {
+          return val.ask.name.includes(searchContent.value)
+        })
+      }
+    })
+
   },
   set(v) {
     // v是计算属性下传递的实参
@@ -184,6 +206,20 @@ const searchShow = ref(false);
 
 const searchInput = ref<any>(null);
 
+const changeTab = (type: TaskType) => {
+  nowTab.value = type;
+}
+
+
+
+const goToTask = (type: TaskType, uuid: string) => {
+  document.getElementById(uuid)!.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'nearest'
+  });
+}
+
 const searchShowFn = () => {
   searchShow.value = !searchShow.value
   if (searchShow.value) {
@@ -200,12 +236,14 @@ let SearchTimeOut: any;
 const groupShowFnCrawler = () => {
   groupShow.value.convert = false;
   groupShow.value.crawler = !groupShow.value.crawler;
+  changeTab(TaskType.Crawler);
 
 }
 
 const groupShowFnConvert = () => {
   groupShow.value.crawler = false;
   groupShow.value.convert = !groupShow.value.convert;
+  changeTab(TaskType.Convert);
 
 }
 
@@ -242,6 +280,11 @@ onMounted(() => {
   background: #fafafa;
   width: 100vw;
   height: 100vh;
+}
+
+.TaskPoolMain {
+  padding: 0rem;
+  overflow-y: hidden;
 }
 
 .TaskPoolAside {
@@ -459,5 +502,31 @@ onMounted(() => {
   100% {
     max-height: 0;
   }
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 160ms ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.TaskPoolDeatils {
+  overflow: overlay;
+  height: calc(100vh - 2.1rem);
+  padding: 0 1.5rem 0 1rem;
+}
+
+.LeaveBlank{
+  width: 100%;
+  height: 2rem;
 }
 </style>

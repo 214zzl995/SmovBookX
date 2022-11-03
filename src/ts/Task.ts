@@ -7,6 +7,7 @@ export type TaskEvent = {
     event_type: TaskType,
     ask: TaskAsk,
     status: TaskStatus,
+    
 }
 
 export enum TaskType {
