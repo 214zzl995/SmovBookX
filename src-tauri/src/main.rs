@@ -7,6 +7,7 @@ use tauri::Manager;
 
 #[macro_use]
 extern crate lazy_static;
+extern crate include_dir;
 
 mod app;
 mod cmd;

@@ -1,6 +1,9 @@
 use rusqlite::{Connection, Result};
 
 use super::connect::exec;
+use include_dir::{include_dir, Dir};
+
+static SQL_DIR: Dir = include_dir!("./sql");
 
 pub struct SmovDb {
   v: f64,
@@ -22,15 +25,30 @@ impl SmovDb {
 
   pub fn init(self: &Self) -> Result<()> {
     let new_v = env!("DB-VERSION").parse::<f64>().unwrap();
-    exec(|conn| {
-      //先执行一次init
-      conn.execute_batch(include_str!("../../sql/init.sql"))?;
-      //通过不断的获取当前的版本 执行新的sql文件
-      //while Self::get_user_version(conn)? < new_v {
-        //let next_sql = format!("../../sql/alter{}.sql", Self::get_user_version(conn)?);
-        //conn.execute_batch(include_str!(next_sql))?;
-      //}
+    tracing::info!("当前需求数据库版本:{}", new_v);
 
+    exec(|conn| {
+      let now_v_begin = Self::get_user_version(conn)?;
+      //如果版本为0 执行一次init 否则执行增量更新包
+      if now_v_begin != 0.0 {
+        //通过不断的获取当前的版本 执行新的sql文件
+        while Self::get_user_version(conn)? < new_v {
+          let now_v = Self::get_user_version(conn)?;
+          tracing::info!("正在更新数据库版本:{}", now_v);
+          let next_sql_file = SQL_DIR
+            .get_file(format!("alter{}.sql", now_v))
+            .unwrap()
+            .clone();
+          let next_sql = next_sql_file.contents_utf8().unwrap();
+          conn.execute_batch(next_sql)?;
+        }
+      } else {
+        tracing::info!("正在初始化数据库");
+        let init_sql_file = SQL_DIR.get_file("init.sql").unwrap().clone();
+        let init_sql = init_sql_file.contents_utf8().unwrap();
+        conn.execute_batch(init_sql)?;
+      }
+      tracing::info!("当前数据库版本:{}", Self::get_user_version(conn)?);
       Ok(())
     })
   }

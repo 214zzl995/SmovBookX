@@ -73,4 +73,4 @@ create table if not exists tasks_msg (
     msg TEXT
 );
 
-pragma user_version = 20221110;
+pragma user_version = 20221109;

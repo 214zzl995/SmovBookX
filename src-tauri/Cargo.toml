@@ -47,6 +47,7 @@ tower-http = {version = "0.3", features = ["fs", "trace"] }
 tracing = "0.1" 
 tracing-subscriber = "0.3" 
 uuid = "1.2.1" 
+include_dir = "0.7.3"
 
 [target."cfg(any(target_os = \"windows\", target_os = \"macos\"))".dependencies]
 window-shadows = "= 0.1.3"
