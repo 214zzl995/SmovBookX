@@ -1,8 +1,9 @@
 use parking_lot::MutexGuard;
 use serde::{Deserialize, Serialize};
 
+use crate::model::file::SmovFile;
 use crate::model::folder::Folder;
-use crate::model::smov::{Smov, SmovFile};
+use crate::model::smov::{Smov};
 use anyhow::{anyhow, Result};
 use std::collections::HashSet;
 use std::ffi::OsStr;

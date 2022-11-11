@@ -1,25 +1,10 @@
-use std::{collections::HashMap, path::PathBuf, time::Duration};
+use std::collections::HashMap;
 
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Result};
 
 use crate::task::pool::{TaskAsk, TaskEvent, TaskStatus, TaskType};
 
-fn create_sqlite_connection() -> Result<Connection> {
-  let database = PathBuf::from(&crate::app::APP.lock().app_dir).join("SmovBook.db");
-  let conn = Connection::open(database)?;
-  conn.busy_timeout(Duration::new(15, 0))?;
-  Ok(conn)
-}
-/// 封装一个方法，获取连接
-pub fn exec<F, T>(func: F) -> Result<T>
-where
-  F: FnOnce(&mut Connection) -> Result<T>,
-{
-  match create_sqlite_connection() {
-    Ok(mut conn) => func(&mut conn),
-    Err(e) => Err(e),
-  }
-}
+use super::connect::exec;
 
 pub struct TasksModel {
   pub id: i64,
@@ -120,7 +105,7 @@ pub fn get_all_task_old_and_bad() -> Result<HashMap<String, TaskEvent>> {
       .to_task_event()
       .unwrap();
 
-      task_events.insert(row.get(2)?, task_event); 
+      task_events.insert(row.get(2)?, task_event);
       Ok(())
     })?;
     Ok(task_events)
@@ -142,12 +127,12 @@ pub fn get_all_task() -> Result<HashMap<String, TaskEvent>> {
       })
     })?;
 
-    for model in models{
+    for model in models {
       let model = model?;
       let uuid = model.uuid.clone();
       task_events.insert(uuid, model.to_task_event().unwrap());
     }
-    
+
     Ok(task_events)
   })
 }

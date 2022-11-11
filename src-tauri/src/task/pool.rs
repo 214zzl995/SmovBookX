@@ -6,10 +6,7 @@ use window_shadows::set_shadow;
 
 use crate::{
   crawler::crawler::smov_crawler_program_pool,
-  model::{
-    smov::{RetrievingSmovPool, Smov},
-    task::TasksModel,
-  },
+  model::{smov::Smov, task::TasksModel, retrieving_smov_pool::RetrievingSmovPool},
   response::response::Response,
   util::smov_format::SmovName,
 };
@@ -343,7 +340,6 @@ impl Task<'_> {
   }
 
   pub fn emit_schedule(self: &Self, schedule: i64, msg: &str) {
-
     //将进度消息传入msg 每一个消息都应对应一个进度或状态
 
     self

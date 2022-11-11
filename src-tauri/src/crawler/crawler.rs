@@ -5,7 +5,7 @@ use crate::{
     error::CrawlerErr,
     network::{get_temp_sync, sava_pic_sync},
   },
-  model::smov::{RetrievingSmov, SmovFileSeek, SmovSeek},
+  model::{seek::SmovSeek, file_seek::{RetrievingSmov, SmovFileSeek}},
   response::response::Response,
   serve::file::TidySmov,
   task::pool::TaskStatus,
@@ -211,12 +211,16 @@ pub async fn smov_crawler_program(format: String, id: i64) -> Result<()> {
   Ok(())
 }
 
+//20221111 保留爬虫爬取的网址
 pub fn smov_crawler_program_pool(
   format: String,
   id: i64,
   task: &crate::task::pool::Task<'_>,
 ) -> Result<()> {
-  task.emit_status(TaskStatus::Running,format!("开始爬取 爬取名称：{}",format).as_str());
+  task.emit_status(
+    TaskStatus::Running,
+    format!("开始爬取 爬取名称：{}", format).as_str(),
+  );
 
   let url = format!("{}/search?q={}&f=all", *MAIN_URL, format);
 
@@ -391,7 +395,7 @@ pub fn smov_crawler_program_pool(
 
   smov_seek.insert_by_path_name().unwrap();
 
-  task.emit_status(TaskStatus::Success,"爬取结束,爬取状态：成功");
+  task.emit_status(TaskStatus::Success, "爬取结束,爬取状态：成功");
 
   Ok(())
 }

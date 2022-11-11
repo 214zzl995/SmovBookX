@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 
-use crate::model::smov::SmovFile;
-use crate::serve::smov_file::retrieve_all;
+use crate::{serve::smov_file::retrieve_all, model::file::SmovFile};
 use std::{
   fs::{create_dir_all, read_dir, rename},
   path::PathBuf,
@@ -27,16 +26,19 @@ impl TidySmov<'_> {
       file_ch = "-C";
     }
 
-    let file_name = format!("{}.{}", &smov_file.realname, &smov_file.extension); //假设存在-C 保留-C
+    //假设存在-C 保留-C
+    let file_name = format!("{}.{}", &smov_file.realname, &smov_file.extension);
     let file_folder_path = PathBuf::from(&smov_file.path);
     let file_file_path = file_folder_path.join(&file_name);
 
-    let tidy_folder_path = tidy_path.join(format!("{}{}", self.name, &file_ch));
+    //20221111 内嵌字幕字符精确到文件 不精确到文件夹
+    let tidy_folder_path = tidy_path.join(self.name);
+    // let tidy_after_count = ;
     let tidy_file_noextension = format!("{}{}", &self.name, &file_ch);
     let tidy_name = format!("{}.{}", &tidy_file_noextension, &smov_file.extension);
     let tidy_file_path = &tidy_folder_path.join(&tidy_name);
-    //判断文件是否还存在
 
+    //判断文件是否还存在
     if !file_file_path.exists() {
       tracing::error!(message = "数据已被物理删除");
       return Err(anyhow!("Missing attribute: {}", "数据已被物理删除"));
@@ -104,6 +106,10 @@ impl TidySmov<'_> {
     .expect("更新数据库出现了错误！,现在没有处理错误，凉凉");
 
     Ok(img_path)
+  }
+  fn get_name_count(self: &Self) -> i32 {
+
+    1
   }
 }
 

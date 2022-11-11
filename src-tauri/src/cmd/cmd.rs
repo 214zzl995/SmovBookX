@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::thread;
 
+use crate::model::file::SmovFile;
+use crate::model::file::SmovPl;
+use crate::model::file_seek::RetrievingSmov;
+use crate::model::file_seek::SmovFileSeek;
 use crate::model::folder::Folder;
-use crate::model::smov::RetrievingSmov;
 use crate::model::smov::Smov;
-use crate::model::smov::SmovFile;
-use crate::model::smov::SmovFileSeek;
-use crate::model::smov::SmovPl;
 use crate::response::response::Response;
 use crate::serve::smov;
 use crate::serve::smov_file;

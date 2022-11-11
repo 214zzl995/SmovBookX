@@ -2,7 +2,7 @@ extern crate kuchiki;
 extern crate lazy_static;
 extern crate reqwest;
 
-use crate::model::smov::SmovSeek;
+use crate::model::seek::SmovSeek;
 use crate::serve::file::TidySmov;
 use kuchiki::{traits::*, NodeData, NodeRef};
 use reqwest::header::HeaderMap;
