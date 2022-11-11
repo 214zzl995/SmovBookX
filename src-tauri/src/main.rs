@@ -44,7 +44,7 @@ async fn main() {
         panic!("文件服务器配置初始化错误！");
       }
       app::init_app_shadows(app);
-      model::smov::SMOVBOOK::init().expect("数据库初始化出现错误");
+      model::init::SmovDb::new()?.init().expect("数据库初始化出现错误");
       Ok(())
     })
     .menu(app::create_app_menu())

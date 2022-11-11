@@ -1,3 +1,6 @@
 [build]
 rustdocflags = ["--cfg", "tokio_unstable"]
 rustflags = ["--cfg", "tokio_unstable", "-A", "dead_code"] #--cfg tokio_unstable 开启tokio不稳定功能 -A dead_code 忽略未使用的方法
+
+[env]
+DB-VERSION = "20221111"
