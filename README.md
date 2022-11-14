@@ -201,6 +201,8 @@ https://stackoverflow.com/questions/35568871/is-it-possible-to-implement-methods
 1. 在不同版本 更新到这个版本时 如何处理中间部分的逻辑 是否可以考虑sql的方式 不断迭代当前文件库的版本 每次执行完导出一个 当前的版本 当当前版本还没有到目标版本时继续进行下一步执行 那么问题来了 如何动态调用这个方法 可以使用hook？
 https://stackoverflow.com/questions/32885446/dynamically-select-a-function-to-call-without-intermediate-variables
 
+2. 数据库更新的模块是不是不用写这东西了 直接在init文件里写是不是就好了
+
 
 
 
