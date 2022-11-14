@@ -6,7 +6,7 @@ use include_dir::{include_dir, Dir};
 static SQL_DIR: Dir = include_dir!("./sql");
 
 pub struct SmovDb {
-  v: f64,
+  v: u32,
 }
 
 impl SmovDb {
@@ -15,8 +15,8 @@ impl SmovDb {
     Ok(SmovDb { v })
   }
 
-  fn get_user_version(conn: &mut Connection) -> Result<f64> {
-    let v = match conn.pragma_query_value(None, "user_version", |row| row.get::<_, f64>(0)) {
+  fn get_user_version(conn: &mut Connection) -> Result<u32> {
+    let v = match conn.pragma_query_value(None, "user_version", |row| row.get::<_, u32>(0)) {
       Ok(v) => v,
       Err(e) => return Err(e.into()),
     };
@@ -24,33 +24,41 @@ impl SmovDb {
   }
 
   pub fn init(self: &Self) -> Result<()> {
-    let new_v = env!("DB-VERSION").parse::<f64>().unwrap();
+    let new_v = env!("DB-VERSION").parse::<u32>().unwrap();
     tracing::info!("当前需求数据库版本:{}", new_v);
 
     exec(|conn| {
       let now_v_begin = Self::get_user_version(conn)?;
       //如果版本为0 执行一次init 否则执行增量更新包
-      if now_v_begin != 0.0 {
-        //通过不断的获取当前的版本 执行新的sql文件
-        while Self::get_user_version(conn)? < new_v {
-          let now_v = Self::get_user_version(conn)?;
-          tracing::info!("正在更新数据库版本:{}", now_v);
-          let next_sql_file = SQL_DIR
-            .get_file(format!("alter{}.sql", now_v))
-            .unwrap()
-            .clone();
-          let next_sql = next_sql_file.contents_utf8().unwrap();
-          conn.execute_batch(next_sql)?;
-        }
+      if now_v_begin != 0 {
+        Self::update_db(conn, &new_v)?;
       } else {
         tracing::info!("正在初始化数据库");
         let init_sql_file = SQL_DIR.get_file("init.sql").unwrap().clone();
         let init_sql = init_sql_file.contents_utf8().unwrap();
         conn.execute_batch(init_sql)?;
+
+        //为了适配已安装的软件 需要继续调用更新
+        Self::update_db(conn, &new_v)?;
       }
       tracing::info!("当前数据库版本:{}", Self::get_user_version(conn)?);
       Ok(())
     })
+  }
+
+  fn update_db(conn: &mut Connection, new_v: &u32) -> Result<()> {
+    //通过不断的获取当前的版本 执行新的sql文件
+    while Self::get_user_version(conn)? < *new_v {
+      let now_v = Self::get_user_version(conn)?;
+      tracing::info!("正在更新数据库版本:{}", now_v);
+      let next_sql_file = SQL_DIR
+        .get_file(format!("alter{}.sql", now_v))
+        .unwrap()
+        .clone();
+      let next_sql = next_sql_file.contents_utf8().unwrap();
+      conn.execute_batch(next_sql)?;
+    }
+    Ok(())
   }
 
   pub fn init_old() -> Result<()> {
