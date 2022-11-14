@@ -38,6 +38,7 @@ impl TasksModel {
       status: self.task_status.clone(),
     })
   }
+
   pub fn insert(self: &Self) -> Result<i64> {
     exec(|conn| {
       conn
@@ -64,6 +65,7 @@ impl TasksModel {
       Ok(task_id)
     })
   }
+
   pub fn get_all_vec() -> Result<Vec<TaskEvent>> {
     exec(|conn| {
       let mut stmt = conn.prepare("select id,name,uuid,smov_id,type,status from tasks")?;

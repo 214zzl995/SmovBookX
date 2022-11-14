@@ -7,3 +7,4 @@ pub mod file;
 pub mod file_seek;
 pub mod retrieving_smov_pool;
 pub mod init;
+pub mod tidy;

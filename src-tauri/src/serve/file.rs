@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 
-use crate::{serve::smov_file::retrieve_all, model::file::SmovFile};
+use crate::{model::file::SmovFile, serve::smov_file::retrieve_all};
 use std::{
   fs::{create_dir_all, read_dir, rename},
   path::PathBuf,
@@ -33,7 +33,6 @@ impl TidySmov<'_> {
 
     //20221111 内嵌字幕字符精确到文件 不精确到文件夹
     let tidy_folder_path = tidy_path.join(self.name);
-    // let tidy_after_count = ;
     let tidy_file_noextension = format!("{}{}", &self.name, &file_ch);
     let tidy_name = format!("{}.{}", &tidy_file_noextension, &smov_file.extension);
     let tidy_file_path = &tidy_folder_path.join(&tidy_name);
@@ -107,9 +106,10 @@ impl TidySmov<'_> {
 
     Ok(img_path)
   }
-  fn get_name_count(self: &Self) -> i32 {
 
-    1
+  pub fn tidy_when_exist(self: &Self, count: i32) -> Result<()> {
+    
+    Ok(())
   }
 }
 

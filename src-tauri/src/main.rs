@@ -8,6 +8,7 @@ use tauri::Manager;
 #[macro_use]
 extern crate lazy_static;
 extern crate include_dir;
+extern crate smovbook;
 
 mod app;
 mod cmd;
@@ -20,9 +21,11 @@ mod serve;
 mod task;
 mod util;
 mod window;
+mod upgrade;
 
 #[tokio::main]
 async fn main() {
+  upgrade::test();
   app::lock_single();
   let app = tauri::Builder::default()
     .setup(|app| {

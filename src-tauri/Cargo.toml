@@ -1,10 +1,10 @@
 [package]
-authors = ["you"]
-default-run = "app"
-description = "A Tauri App"
+authors = ["leri"]
+default-run = "smovbook"
+description = "JAV简单整理程序"
 edition = "2021"
 license = ""
-name = "app"
+name = "smovbook"
 repository = ""
 rust-version = "1.56"
 version = "0.1.0"
@@ -66,3 +66,6 @@ winreg = "0.10.1"
 [features]
 custom-protocol = ["tauri/custom-protocol"]
 default = ["custom-protocol"]
+
+[lib]
+proc-macro = true
