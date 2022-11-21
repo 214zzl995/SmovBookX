@@ -204,5 +204,10 @@ https://stackoverflow.com/questions/32885446/dynamically-select-a-function-to-ca
 2. 数据库更新的模块是不是不用写这东西了 直接在init文件里写是不是就好了
 
 
+# 爬虫更新 
+使用xpath框架 尝试多网站获取
+https://github.com/hominee/dyer
+
+
 
 
